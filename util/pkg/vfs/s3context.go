@@ -25,6 +25,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -79,7 +80,11 @@ func (s *S3Context) getClient(region string) (*s3.S3, error) {
 			}
 		}
 
-		sess, err := session.NewSession(config)
+		options := session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		}
+
+		sess, err := session.NewSessionWithOptions(options)
 		if err != nil {
 			return nil, fmt.Errorf("error starting new AWS session: %v", err)
 		}

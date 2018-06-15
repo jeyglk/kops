@@ -24,6 +24,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
@@ -201,9 +202,14 @@ func NewAWSCloud(region string, tags map[string]string) (AWSCloud, error) {
 			time.Sleep(d)
 		}
 
+		// This allows to prompt the MFA token if SharedConfigState or AWS_SDK_LOAD_CONFIG is enabled.
+		options := session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		}
+
 		requestLogger := newRequestLogger(2)
 
-		sess, err := session.NewSession(config)
+		sess, err := session.NewSessionWithOptions(options)
 		if err != nil {
 			return c, err
 		}
@@ -211,7 +217,7 @@ func NewAWSCloud(region string, tags map[string]string) (AWSCloud, error) {
 		c.cf.Handlers.Send.PushFront(requestLogger)
 		c.addHandlers(region, &c.cf.Handlers)
 
-		sess, err = session.NewSession(config)
+		sess, err = session.NewSessionWithOptions(options)
 		if err != nil {
 			return c, err
 		}
@@ -219,7 +225,7 @@ func NewAWSCloud(region string, tags map[string]string) (AWSCloud, error) {
 		c.ec2.Handlers.Send.PushFront(requestLogger)
 		c.addHandlers(region, &c.ec2.Handlers)
 
-		sess, err = session.NewSession(config)
+		sess, err = session.NewSessionWithOptions(options)
 		if err != nil {
 			return c, err
 		}
@@ -227,7 +233,7 @@ func NewAWSCloud(region string, tags map[string]string) (AWSCloud, error) {
 		c.iam.Handlers.Send.PushFront(requestLogger)
 		c.addHandlers(region, &c.iam.Handlers)
 
-		sess, err = session.NewSession(config)
+		sess, err = session.NewSessionWithOptions(options)
 		if err != nil {
 			return c, err
 		}
@@ -235,7 +241,7 @@ func NewAWSCloud(region string, tags map[string]string) (AWSCloud, error) {
 		c.elb.Handlers.Send.PushFront(requestLogger)
 		c.addHandlers(region, &c.elb.Handlers)
 
-		sess, err = session.NewSession(config)
+		sess, err = session.NewSessionWithOptions(options)
 		if err != nil {
 			return c, err
 		}
@@ -243,7 +249,7 @@ func NewAWSCloud(region string, tags map[string]string) (AWSCloud, error) {
 		c.autoscaling.Handlers.Send.PushFront(requestLogger)
 		c.addHandlers(region, &c.autoscaling.Handlers)
 
-		sess, err = session.NewSession(config)
+		sess, err = session.NewSessionWithOptions(options)
 		if err != nil {
 			return c, err
 		}
